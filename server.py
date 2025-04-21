@@ -38,26 +38,26 @@ def handle_dialog(req, res):
                 "Не хочу.",
                 "Не буду.",
                 "Отстань!",
-            ]
+            ],
+            "animal": "слон"
         }
 
-        res['response']['text'] = 'Привет! Купи слона!'
+        res['response']['text'] = f'Привет! Купи {sessionStorage[user_id]["animal"]}а!'
 
         res['response']['buttons'] = get_suggests(user_id)
         return
 
-    if req['request']['original_utterance'].lower() in [
-        'ладно',
-        'куплю',
-        'покупаю',
-        'хорошо'
-    ]:
-        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
-        res['response']['end_session'] = True
-        return
+    if req['request']['original_utterance']:
+        for word in (req['request']['original_utterance'].lower()).split():
+            if word == "не":
+                return
+            if word in ["ладно", "куплю", "хорошо", "покупаю"]:
+                res['response']['text'] = f'{sessionStorage[user_id]["animal"].upper()}а можно найти на Яндекс.Маркете!'
+                res['response']['end_session'] = True
+                return
 
     res['response']['text'] = \
-        f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
+        f"Все говорят '{req['request']['original_utterance']}', а ты купи {sessionStorage[user_id]['animal']}а!"
     res['response']['buttons'] = get_suggests(user_id)
 
 
@@ -73,11 +73,21 @@ def get_suggests(user_id):
     sessionStorage[user_id] = session
 
     if len(suggests) < 2:
-        suggests.append({
-            "title": "Ладно",
-            "url": "https://market.yandex.ru/search?text=слон",
-            "hide": True
-        })
+        if sessionStorage[user_id]["animal"] == "слон":
+            suggests.append({
+                "title": "Ладно",
+                "url": "https://market.yandex.ru/search?text=слон",
+                "hide": True
+            })
+
+            sessionStorage[user_id]["animal"] = "кролик"
+        else:
+            suggests.append({
+                "title": "Ладно",
+                "url": "https://market.yandex.ru/search?text=кролик",
+                "hide": True
+            })
+            sessionStorage[user_id]["animal"] = "слон"
 
     return suggests
 
